@@ -7,22 +7,24 @@ st.set_page_config(page_title="Mutual Fund Explorer", layout="wide")
 
 st.title("📊 Mutual Funds India - 1 Year Returns Analysis")
 
-# File uploader
+# File uploader must be used first
 uploaded_file = st.file_uploader("📂 Upload your mutual_funds_india.csv file", type=["csv"])
 
+# ✅ Do NOT try to read file outside this block!
 if uploaded_file is not None:
+    # Read uploaded file
     df = pd.read_csv(uploaded_file)
-    df.columns = df.columns.str.replace(" ", "")  # Clean column names
+    df.columns = df.columns.str.replace(" ", "")  # Remove spaces from column names
 
     # Dropdown for Category
-    categories = df['category'].unique()
+    categories = df['category'].dropna().unique()
     selected_category = st.selectbox("Select a Fund Category", sorted(categories))
 
     # Filter by category
     filtered_df = df[df['category'] == selected_category]
 
     # Dropdown for AMC
-    amcs = filtered_df['AMC_name'].unique()
+    amcs = filtered_df['AMC_name'].dropna().unique()
     selected_amc = st.selectbox("Select an AMC", sorted(amcs))
 
     # Filter by AMC
@@ -41,5 +43,6 @@ if uploaded_file is not None:
     plt.ylabel("1-Year Return (%)")
     plt.title(f"{selected_amc} - {selected_category} Returns")
     st.pyplot(fig)
+
 else:
-    st.warning("⚠️ Please upload a CSV file to continue.")
+    st.warning("⚠️ Please upload a CSV file to proceed.")
