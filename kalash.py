@@ -3,40 +3,43 @@ import pandas as pd
 import seaborn as sb
 import matplotlib.pyplot as plt
 
-# Set Streamlit page configuration
 st.set_page_config(page_title="Mutual Fund Explorer", layout="wide")
 
-# Title
 st.title("📊 Mutual Funds India - 1 Year Returns Analysis")
 
-# Load Data
-df = pd.read_csv('../kalas/Downloads/mutual_funds_india.csv')
-df.columns = df.columns.str.replace(" ", "")  # Remove spaces from column names
+# File uploader
+uploaded_file = st.file_uploader("📂 Upload your mutual_funds_india.csv file", type=["csv"])
 
-# Category Selection
-categories = df['category'].unique()
-selected_category = st.selectbox("Select a Fund Category", sorted(categories))
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    df.columns = df.columns.str.replace(" ", "")  # Clean column names
 
-# Filter by category
-filtered_df = df[df['category'] == selected_category]
+    # Dropdown for Category
+    categories = df['category'].unique()
+    selected_category = st.selectbox("Select a Fund Category", sorted(categories))
 
-# AMC Selection
-amcs = filtered_df['AMC_name'].unique()
-selected_amc = st.selectbox("Select an AMC", sorted(amcs))
+    # Filter by category
+    filtered_df = df[df['category'] == selected_category]
 
-# Filter by AMC
-final_df = filtered_df[filtered_df['AMC_name'] == selected_amc]
+    # Dropdown for AMC
+    amcs = filtered_df['AMC_name'].unique()
+    selected_amc = st.selectbox("Select an AMC", sorted(amcs))
 
-# Display filtered data
-st.subheader("Filtered Mutual Funds")
-st.dataframe(final_df[['MutualFundName', 'return_1yr']].reset_index(drop=True))
+    # Filter by AMC
+    final_df = filtered_df[filtered_df['AMC_name'] == selected_amc]
 
-# Bar Plot
-st.subheader("📈 1-Year Returns Bar Plot")
-fig, ax = plt.subplots(figsize=(12, 6))
-sb.barplot(x=final_df['MutualFundName'], y=final_df['return_1yr'], palette='ocean', ax=ax)
-plt.xticks(rotation=90)
-plt.xlabel("Mutual Fund Name")
-plt.ylabel("1-Year Return (%)")
-plt.title(f"{selected_amc} - {selected_category} Returns")
-st.pyplot(fig)
+    # Display Table
+    st.subheader("📋 Filtered Mutual Funds")
+    st.dataframe(final_df[['MutualFundName', 'return_1yr']].reset_index(drop=True))
+
+    # Bar Plot
+    st.subheader("📈 1-Year Returns Bar Plot")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    sb.barplot(x=final_df['MutualFundName'], y=final_df['return_1yr'], palette='ocean', ax=ax)
+    plt.xticks(rotation=90)
+    plt.xlabel("Mutual Fund Name")
+    plt.ylabel("1-Year Return (%)")
+    plt.title(f"{selected_amc} - {selected_category} Returns")
+    st.pyplot(fig)
+else:
+    st.warning("⚠️ Please upload a CSV file to continue.")
