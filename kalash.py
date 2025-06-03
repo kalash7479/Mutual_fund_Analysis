@@ -10,7 +10,7 @@ st.set_page_config(page_title="Mutual Fund Explorer", layout="wide")
 st.title("📊 Mutual Funds India - 1 Year Returns Analysis")
 
 # Load Data
-df = pd.read_csv('../kalas/Downloads/mutual_funds_india.csv')  # update the path if needed
+df = pd.read_csv('../kalas/Downloads/mutual_funds_india.csv')
 df.columns = df.columns.str.replace(" ", "")  # Remove spaces from column names
 
 # Category Selection
