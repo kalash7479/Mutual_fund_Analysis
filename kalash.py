@@ -5,44 +5,69 @@ import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Mutual Fund Explorer", layout="wide")
 
-st.title("📊 Mutual Funds India - 1 Year Returns Analysis")
+st.title("📊 Mutual Funds India - 1 Year Returns Explorer")
 
-# File uploader must be used first
-uploaded_file = st.file_uploader("📂 Upload your mutual_funds_india.csv file", type=["csv"])
+# Upload CSV file
+uploaded_file = st.file_uploader("📂 Upload your `mutual_funds_india.csv` file", type=["csv"])
 
-# ✅ Do NOT try to read file outside this block!
 if uploaded_file is not None:
-    # Read uploaded file
+    # Read file
     df = pd.read_csv(uploaded_file)
-    df.columns = df.columns.str.replace(" ", "")  # Remove spaces from column names
+    df.columns = df.columns.str.replace(" ", "")  # Clean column names
 
-    # Dropdown for Category
-    categories = df['category'].dropna().unique()
-    selected_category = st.selectbox("Select a Fund Category", sorted(categories))
+    # Sidebar filters
+    with st.sidebar:
+        st.header("🔍 Filter Options")
 
-    # Filter by category
-    filtered_df = df[df['category'] == selected_category]
+        # Category dropdown
+        categories = sorted(df['category'].dropna().unique())
+        selected_category = st.selectbox("Select Category", categories)
 
-    # Dropdown for AMC
-    amcs = filtered_df['AMC_name'].dropna().unique()
-    selected_amc = st.selectbox("Select an AMC", sorted(amcs))
+        # Filter by category
+        filtered_by_category = df[df['category'] == selected_category]
 
-    # Filter by AMC
-    final_df = filtered_df[filtered_df['AMC_name'] == selected_amc]
+        # AMC dropdown
+        amcs = sorted(filtered_by_category['AMC_name'].dropna().unique())
+        selected_amc = st.selectbox("Select AMC", amcs)
 
-    # Display Table
-    st.subheader("📋 Filtered Mutual Funds")
-    st.dataframe(final_df[['MutualFundName', 'return_1yr']].reset_index(drop=True))
+        # Filter by AMC
+        filtered_data = filtered_by_category[filtered_by_category['AMC_name'] == selected_amc]
 
-    # Bar Plot
-    st.subheader("📈 1-Year Returns Bar Plot")
-    fig, ax = plt.subplots(figsize=(12, 6))
-    sb.barplot(x=final_df['MutualFundName'], y=final_df['return_1yr'], palette='ocean', ax=ax)
-    plt.xticks(rotation=90)
-    plt.xlabel("Mutual Fund Name")
-    plt.ylabel("1-Year Return (%)")
-    plt.title(f"{selected_amc} - {selected_category} Returns")
-    st.pyplot(fig)
+        # Optional search by mutual fund name
+        mf_search = st.text_input("🔎 Search Mutual Fund Name (optional)").strip().lower()
+        if mf_search:
+            filtered_data = filtered_data[filtered_data['MutualFundName'].str.lower().str.contains(mf_search)]
 
+        # Color palette selector
+        palette_option = st.selectbox("🎨 Select Bar Chart Color Palette", [
+            'viridis', 'deep', 'muted', 'pastel', 'dark', 'colorblind', 'ocean', 'rocket', 'mako'
+        ])
+
+        # Toggle raw data
+        show_data = st.checkbox("📄 Show Raw Filtered Data")
+
+    st.markdown(f"### Showing Results for **{selected_amc}** in **{selected_category}**")
+
+    if filtered_data.empty:
+        st.warning("No mutual funds found with the selected filters or search term.")
+    else:
+        # Show data table
+        if show_data:
+            st.dataframe(filtered_data[['MutualFundName', 'return_1yr']].reset_index(drop=True))
+
+        # Bar plot
+        st.subheader("📈 1-Year Returns")
+        fig, ax = plt.subplots(figsize=(12, 6))
+        sb.barplot(
+            x=filtered_data['MutualFundName'],
+            y=filtered_data['return_1yr'],
+            palette=palette_option,
+            ax=ax
+        )
+        plt.xticks(rotation=90)
+        plt.xlabel("Mutual Fund")
+        plt.ylabel("1-Year Return (%)")
+        plt.title(f"Return Comparison: {selected_amc}")
+        st.pyplot(fig)
 else:
-    st.warning("⚠️ Please upload a CSV file to proceed.")
+    st.info("👈 Please upload your CSV file from the sidebar to begin.")
